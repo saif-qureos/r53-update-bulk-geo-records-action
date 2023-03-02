@@ -1,5 +1,5 @@
-import { Route53 } from 'aws-sdk';
-const route53 = new Route53();
+const AWS = require('aws-sdk');
+const route53 = new AWS.Route53();
 
 async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancerHostedZoneId, route53HostedZoneId) {
   const records = await getRecordsByDomainName(domainName, route53HostedZoneId);
