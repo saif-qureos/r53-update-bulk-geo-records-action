@@ -1,5 +1,7 @@
-const AWS = require('aws-sdk');
-const route53 = new AWS.Route53();
+const {
+  Route53
+} = require("@aws-sdk/client-route-53");
+const route53 = new Route53();
 const core = require('@actions/core');
 
 async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancerHostedZoneId, route53HostedZoneId) {
@@ -12,8 +14,8 @@ async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancer
 
   // This code will first check if the record is the default record (the one with the domain name) and ignore it. For other records, it will check if they are geolocation records and include them only if they are not the default record.
   await Promise.all(recordsToDelete.map(record => deleteRecord(route53HostedZoneId, record)));
-  
-  
+
+
   geoCodes.map(async code => {
     const GeoLocation = code.length === 2 ? { CountryCode: code } : { ContinentCode: code };
     const upsertParams = {
@@ -38,7 +40,7 @@ async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancer
       },
     };
 
-    await route53.changeResourceRecordSets(upsertParams).promise();
+    await route53.changeResourceRecordSets(upsertParams);
   });
 }
 
@@ -54,7 +56,7 @@ async function deleteRecord(route53HostedZoneId, record) {
       ],
     },
   };
-  await route53.changeResourceRecordSets(deleteParams).promise();
+  await route53.changeResourceRecordSets(deleteParams);
 }
 
 async function getRecordsByDomainName(domainName, route53HostedZoneId) {
@@ -66,7 +68,7 @@ async function getRecordsByDomainName(domainName, route53HostedZoneId) {
   let records = [];
 
   do {
-    const res = await route53.listResourceRecordSets(listParams).promise();
+    const res = await route53.listResourceRecordSets(listParams);
     records = records.concat(res.ResourceRecordSets);
     listParams.NextRecordName = res.NextRecordName;
     listParams.NextRecordType = res.NextRecordType;
