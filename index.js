@@ -57,7 +57,7 @@ async function deleteRecord(route53HostedZoneId, record) {
   await route53.changeResourceRecordSets(deleteParams).promise();
 }
 
-async function getRecordsByDomainName(domainName, hostedZoneId) {
+async function getRecordsByDomainName(domainName, route53HostedZoneId) {
   const listParams = {
     HostedZoneId: route53HostedZoneId,
     StartRecordName: domainName,
