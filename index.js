@@ -1,10 +1,15 @@
-const AWS = require('aws-sdk');
-const route53 = new AWS.Route53();
+import { Route53 } from 'aws-sdk';
+const route53 = new Route53();
 
 async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancerHostedZoneId, route53HostedZoneId) {
   const records = await getRecordsByDomainName(domainName, route53HostedZoneId);
-  const recordsToDelete = records.filter(record => record.Type === 'A' && record.AliasTarget === undefined && !geoCodes.includes(record.GeoLocation.ContinentCode || record.GeoLocation.CountryCode));
+  const recordsToDelete = records.filter(record => {
+    const isDefaultRecord = record.Type === 'A' && record.Name === domainName && record.AliasTarget && record.AliasTarget.DNSName === loadBalancerDns;
+    const isGeoRecord = record.Type === 'A' && record.AliasTarget && record.AliasTarget.DNSName === loadBalancerDns && geoCodes.includes(record.GeoLocation.ContinentCode || record.GeoLocation.CountryCode);
+    return isGeoRecord && !isDefaultRecord;
+  });
 
+  // This code will first check if the record is the default record (the one with the domain name) and ignore it. For other records, it will check if they are geolocation records and include them only if they are not the default record.
   await Promise.all(recordsToDelete.map(record => deleteRecord(route53HostedZoneId, record)));
 
   const resourceRecords = geoCodes.map(code => {
@@ -72,11 +77,12 @@ async function getRecordsByDomainName(domainName, hostedZoneId) {
 
 
 async function run() {
-  const route53HostedZoneId = core.getInput("route53-hosted-zone-id");
-  const loadBalancerHostedZoneId = core.getInput("load-balancer-hosted-zone-id");
-  const domainName = core.getInput("domain-name");
-  const geoCodes = core.getInput("geo-codes").split(",").map((code) => code.trim());
-  const loadBalancerDns = core.getInput("load-balancer-dns");
+
+  const route53HostedZoneId = core.getInput("route53-hosted-zone-id", { required: true });
+  const loadBalancerHostedZoneId = core.getInput("load-balancer-hosted-zone-id", { required: true });
+  const domainName = core.getInput("domain-name", { required: true });
+  const geoCodes = core.getInput("geo-codes", { required: true }).split(",").map((code) => code.trim());
+  const loadBalancerDns = core.getInput("load-balancer-dns", { required: true });
 
   await upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancerHostedZoneId, route53HostedZoneId);
 }
