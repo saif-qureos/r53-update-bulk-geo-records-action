@@ -81,8 +81,12 @@ async function getRecordsByDomainName(domainName, route53HostedZoneId) {
     listParams.NextRecordType = res.NextRecordType;
   } while (listParams.NextRecordName && listParams.NextRecordType);
 
+  // filter records to only include the ones with the specific domain name
+  records = records.filter(record => record.Name === domainName);
+
   return records;
 }
+
 
 
 async function run() {
