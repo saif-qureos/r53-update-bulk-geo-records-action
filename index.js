@@ -13,34 +13,36 @@ async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancer
   // This code will first check if the record is the default record (the one with the domain name) and ignore it. For other records, it will check if they are geolocation records and include them only if they are not the default record.
   await Promise.all(recordsToDelete.map(record => deleteRecord(route53HostedZoneId, record)));
 
-  const resourceRecords = geoCodes.map(code => {
-    const geoLocation = code.length === 2 ? { CountryCode: code } : { ContinentCode: code };
-    return { Value: loadBalancerDns, GeoLocation: geoLocation, TTL: 10 };
+  // const resourceRecords = geoCodes.map(code => {
+  //   const geoLocation = code.length === 2 ? { CountryCode: code } : { ContinentCode: code };
+  //   return { Value: loadBalancerDns, GeoLocation: geoLocation, TTL: 10 };
+  // });
+  geoCodes.map(async code => {
+    const GeoLocation = code.length === 2 ? { CountryCode: code } : { ContinentCode: code };
+    const upsertParams = {
+      HostedZoneId: route53HostedZoneId,
+      ChangeBatch: {
+        Changes: [
+          {
+            "Action": "UPSERT",
+            "ResourceRecordSet": {
+              "Name": domainName,
+              "Type": "A",
+              GeoLocation,
+              "SetIdentifier": code,
+              "AliasTarget": {
+                "DNSName": loadBalancerDns,
+                "EvaluateTargetHealth": false,
+                "HostedZoneId": loadBalancerHostedZoneId
+              }
+            }
+          }
+        ]
+      },
+    };
+
+    await route53.changeResourceRecordSets(upsertParams).promise();
   });
-
-  const upsertParams = {
-    HostedZoneId: route53HostedZoneId,
-    ChangeBatch: {
-      Changes: [
-        {
-          Action: 'UPSERT',
-          ResourceRecordSet: {
-            Name: domainName,
-            Type: 'A',
-            AliasTarget: {
-              DNSName: loadBalancerDns,
-              EvaluateTargetHealth: false,
-              HostedZoneId: loadBalancerHostedZoneId,
-            },
-            ResourceRecords: resourceRecords,
-            TTL: 10,
-          },
-        },
-      ],
-    },
-  };
-
-  await route53.changeResourceRecordSets(upsertParams).promise();
 }
 
 async function deleteRecord(route53HostedZoneId, record) {
