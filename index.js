@@ -20,7 +20,7 @@ async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancer
   console.log(`Deleting ${recordsToDelete.length} records for ${domainName}`);
   // This code will first check if the record is the default record (the one with the domain name) and ignore it. For other records, it will check if they are geolocation records and include them only if they are not the default record.
   await Promise.all(recordsToDelete.map(record => deleteRecord(route53HostedZoneId, record)));
-  
+
   console.log(`Upserting ${geoCodes.length} records for ${domainName}`);
 
   geoCodes.map(async code => {
@@ -71,21 +71,17 @@ async function getRecordsByDomainName(domainName, route53HostedZoneId) {
     HostedZoneId: route53HostedZoneId,
     StartRecordName: domainName,
     StartRecordType: 'A',
+    MaxItems: '100',
   };
-  let records = [];
+  const res = await route53.listResourceRecordSets(listParams).promise();
 
-  do {
-    const res = await route53.listResourceRecordSets(listParams);
-    records = records.concat(res.ResourceRecordSets);
-    listParams.NextRecordName = res.NextRecordName;
-    listParams.NextRecordType = res.NextRecordType;
-  } while (listParams.NextRecordName && listParams.NextRecordType);
+  if (res.ResourceRecordSets.length === 0) {
+    throw new Error(`No record sets found for domain name '${domainName}' in hosted zone '${route53HostedZoneId}'`);
+  }
 
-  // filter records to only include the ones with the specific domain name
-  records = records.filter(record => record.Name === domainName);
-
-  return records;
+  return res.ResourceRecordSets;
 }
+
 
 
 
