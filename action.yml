@@ -1,5 +1,8 @@
 name: "AWS Route 53 Geolocation Updater"
-description: "This GitHub Action updates the geolocation records of a domain in AWS Route 53 based on a list of country or continent codes, using AWS CLI. It also has the ability to dynamically remove any outdated geolocation records."
+description: "This GitHub Action updates the geolocation records of a domain in AWS Route 53 based on a list of countries."
+branding:
+  color: 'green'
+  icon: 'check-square'
 
 runs:
   using: node16
