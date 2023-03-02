@@ -19,6 +19,7 @@
   "homepage": "https://github.com/saif-qureos/r53-update-bulk-geo-records-action#readme",
   "dependencies": {
     "@actions/core": "^1.10.0",
+    "@aws-sdk/client-route-53": "^3.282.0",
     "aws-sdk": "^2.1326.0"
   }
 }
