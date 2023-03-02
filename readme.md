@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Update Geolocation Records
-      uses: your-username/aws-route53-geolocation-updater@main
+      uses: saif-qureos/aws-route53-geolocation-updater@main
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -36,4 +36,4 @@ jobs:
         domain-name: example.com
         loadbalancer-dns: my-load-balancer.us-east-1.elb.amazonaws.com
         geolocation-codes: US,EU,AE
-        ttl: 300
+        ttl: 10
