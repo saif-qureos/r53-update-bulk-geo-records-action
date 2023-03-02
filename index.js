@@ -71,15 +71,22 @@ async function getRecordsByDomainName(domainName, route53HostedZoneId) {
     HostedZoneId: route53HostedZoneId,
     StartRecordName: domainName,
     StartRecordType: 'A',
-    MaxItems: '100',
   };
-  const res = await route53.listResourceRecordSets(listParams).promise();
+  let records = [];
 
-  if (res.ResourceRecordSets.length === 0) {
-    throw new Error(`No record sets found for domain name '${domainName}' in hosted zone '${route53HostedZoneId}'`);
-  }
+  do {
+    const res = await new Promise((resolve, reject) => {
+      route53.listResourceRecordSets(listParams, (err, data) => {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+    records = records.concat(res.ResourceRecordSets);
+    listParams.NextRecordName = res.NextRecordName;
+    listParams.NextRecordType = res.NextRecordType;
+  } while (listParams.NextRecordName && listParams.NextRecordType);
 
-  return res.ResourceRecordSets;
+  return records;
 }
 
 
