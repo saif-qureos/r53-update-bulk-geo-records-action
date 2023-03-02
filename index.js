@@ -9,13 +9,13 @@ async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancer
 
   const records = await getRecordsByDomainName(domainName, route53HostedZoneId);
   console.log(`Fetched ${records.length} records for ${domainName}`);
-
+  console.log(records);
   const recordsToDelete = records.filter(record => {
     const isDefaultRecord = record.Type === 'A' && record.Name === domainName && record.AliasTarget && record.AliasTarget.DNSName === loadBalancerDns;
     const isGeoRecord = record.Type === 'A' && record.AliasTarget && record.AliasTarget.DNSName === loadBalancerDns && !geoCodes.includes(record.GeoLocation.ContinentCode || record.GeoLocation.CountryCode);
     return isGeoRecord && !isDefaultRecord;
   });
-  
+
   console.log(recordsToDelete);
   console.log(`Deleting ${recordsToDelete.length} records for ${domainName}`);
   // This code will first check if the record is the default record (the one with the domain name) and ignore it. For other records, it will check if they are geolocation records and include them only if they are not the default record.
