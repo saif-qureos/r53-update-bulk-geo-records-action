@@ -97,9 +97,9 @@ async function run() {
 
   const route53HostedZoneId = core.getInput("route53-hosted-zone-id", { required: true });
   const loadBalancerHostedZoneId = core.getInput("load-balancer-hosted-zone-id", { required: true });
-  const domainName = core.getInput("domain-name", { required: true });
+  const domainName = core.getInput("domain-name", { required: true }).toLowerCase();
   const geoCodes = core.getInput("geo-codes", { required: true }).split(",").map((code) => code.trim());
-  const loadBalancerDns = core.getInput("load-balancer-dns", { required: true });
+  const loadBalancerDns = core.getInput("load-balancer-dns", { required: true }).toLowerCase();
 
   await upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancerHostedZoneId, route53HostedZoneId);
 }
