@@ -1,7 +1,7 @@
 const {
   Route53
 } = require("@aws-sdk/client-route-53");
-const route53 = new Route53();
+const route53 = new Route53({ region: 'eu-east-1' });
 const core = require('@actions/core');
 
 async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancerHostedZoneId, route53HostedZoneId) {
@@ -11,7 +11,7 @@ async function upsertRecords(domainName, geoCodes, loadBalancerDns, loadBalancer
   console.log(`Fetched ${records.length} records for ${domainName}`);
   console.log(records);
   const recordsToDelete = records.filter(record => {
-    const isDefaultRecord = record.Type === 'A' && record.Name === domainName && record.AliasTarget && record.AliasTarget.DNSName === loadBalancerDns;
+    const isDefaultRecord = record.Type === 'A' && record.Name === domainName && record.GeoLocation.CountryCode == '*';
     const isGeoRecord = record.Type === 'A' && record.AliasTarget && record.AliasTarget.DNSName === loadBalancerDns && !geoCodes.includes(record.GeoLocation.ContinentCode || record.GeoLocation.CountryCode);
     return isGeoRecord && !isDefaultRecord;
   });
@@ -85,7 +85,8 @@ async function getRecordsByDomainName(domainName, route53HostedZoneId) {
     listParams.NextRecordName = res.NextRecordName;
     listParams.NextRecordType = res.NextRecordType;
   } while (listParams.NextRecordName && listParams.NextRecordType);
-
+  // filter records to only include the ones with the specific domain name
+  records = records.filter(record => record.Name === domainName);
   return records;
 }
 
