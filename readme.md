@@ -34,8 +34,8 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
         route53-hosted-zone-id: ZXXXXXXXXXXXXXX
-        domain-name: example.com
-        load-balancer-dns: my-load-balancer.us-east-1.elb.amazonaws.com
+        domain-name: example.com.
+        load-balancer-dns: my-load-balancer.us-east-1.elb.amazonaws.com.
         load-balancer-hosted-zone-id: ZXXXXXXXXXXXXXX
         geo-codes: US,EU,AE
         ttl: 10
